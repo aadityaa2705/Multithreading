@@ -4,7 +4,7 @@ import java.util.List;
 
 public class MyConsumer implements Runnable{
     public static final String EOF = "EOF";
-    List<String> buffer;
+    final List<String> buffer;
     String color;
 
     public MyConsumer(List<String> buffer, String color) {
@@ -15,14 +15,16 @@ public class MyConsumer implements Runnable{
     @Override
     public void run() {
         while (true){
-            if (buffer.isEmpty()){
-                continue;
-            }
-            if (buffer.get(0).equals(EOF)){
-                System.out.println(color + " exiting....");
-                break;
-            }else {
-                System.out.println(color + "removed..." + buffer.remove(0));
+            synchronized (buffer){
+                if (buffer.isEmpty()){
+                    continue;
+                }
+                if (buffer.get(0).equals(EOF)){
+                    System.out.println(color + "exiting....");
+                    break;
+                }else {
+                    System.out.println(color + "removed..." + buffer.remove(0));
+                }
             }
         }
     }

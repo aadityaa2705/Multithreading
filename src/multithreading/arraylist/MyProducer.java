@@ -3,8 +3,8 @@ import java.util.List;
 import java.util.Random;
 
 public class MyProducer implements Runnable {
-    private List<String> buffer;
-    private String color;
+    private final List<String> buffer;
+    private final String color;
 
     public MyProducer(List<String> buffer, String color) {
         this.buffer = buffer;
@@ -17,7 +17,9 @@ public class MyProducer implements Runnable {
         String [] nums = {"1", "2", "3", "4", "5"};
         for (String num : nums){
             System.out.println(color + "adding..." + num);
-            buffer.add(num);
+            synchronized(buffer){
+                buffer.add(num);
+            }
             try {
                 Thread.sleep(random.nextInt(1000));
             } catch (InterruptedException e) {
@@ -25,6 +27,8 @@ public class MyProducer implements Runnable {
             }
         }
         System.out.println(color + "adding EOF and exiting....");
-        buffer.add("EOF");
+        synchronized (buffer){
+            buffer.add("EOF");
+        }
     }
 }
