@@ -1,14 +1,17 @@
 package multithreading.arraylist;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class MyProducer implements Runnable {
     private final List<String> buffer;
     private final String color;
+    private ReentrantLock bufferLock;
 
-    public MyProducer(List<String> buffer, String color) {
+    public MyProducer(List<String> buffer, String color, ReentrantLock bufferLock) {
         this.buffer = buffer;
         this.color = color;
+        this.bufferLock = bufferLock;
     }
 
     @Override
@@ -17,9 +20,9 @@ public class MyProducer implements Runnable {
         String [] nums = {"1", "2", "3", "4", "5"};
         for (String num : nums){
             System.out.println(color + "adding..." + num);
-            synchronized(buffer){
+                bufferLock.lock();
                 buffer.add(num);
-            }
+                bufferLock.unlock();
             try {
                 Thread.sleep(random.nextInt(1000));
             } catch (InterruptedException e) {
@@ -27,8 +30,9 @@ public class MyProducer implements Runnable {
             }
         }
         System.out.println(color + "adding EOF and exiting....");
-        synchronized (buffer){
+            bufferLock.lock();
             buffer.add("EOF");
-        }
+            bufferLock.unlock();
+
     }
 }
