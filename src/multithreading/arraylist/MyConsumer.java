@@ -1,43 +1,34 @@
 package multithreading.arraylist;
 
-import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class MyConsumer implements Runnable {
     public static final String EOF = "EOF";
-    private final List<String> buffer;
+    private final ArrayBlockingQueue<String> buffer;
     private final String color;
-    private ReentrantLock bufferLock;
 
-
-    public MyConsumer(List<String> buffer, String color, ReentrantLock bufferLock) {
+    public MyConsumer(ArrayBlockingQueue<String> buffer, String color) {
         this.buffer = buffer;
         this.color = color;
-        this.bufferLock = bufferLock;
     }
 
     @Override
     public void run() {
-        int counter = 0;
+
         while (true) {
-            if (bufferLock.tryLock()) {
+            synchronized (buffer){
                 try {
-                    if (buffer.isEmpty()){
+                    if (buffer.isEmpty()) {
                         continue;
                     }
-                    System.out.println(color+ "The counter : "+counter);
-                    counter = 0;
-                    if (buffer.get(0).equals(EOF)) {
+                    if (buffer.peek().equals(EOF)) {
                         System.out.println(color + "exiting....");
                         break;
                     } else {
-                        System.out.println(color + "removed..." + buffer.remove(0));
+                        System.out.println(color + "removed..." + buffer.take());
                     }
-                }finally {
-                    bufferLock.unlock();
+                } catch (InterruptedException e) {
                 }
-            } else {
-             counter++;
             }
         }
     }

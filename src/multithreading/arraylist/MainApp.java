@@ -2,28 +2,39 @@ package multithreading.arraylist;
 
 import multithreading.threadcolor.ThreadColor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.*;
 
 public class MainApp {
     public static void main(String[] args) {
-        List<String> buffer = new ArrayList<>();
+        ArrayBlockingQueue<String> buffer = new ArrayBlockingQueue<>(6);
 
-        ReentrantLock bufferLock = new ReentrantLock();
+        ExecutorService executorService = Executors.newFixedThreadPool(5 );
 
-        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        MyProducer producer = new MyProducer(buffer, ThreadColor.ANSI_RED);
 
-        MyProducer producer = new MyProducer(buffer, ThreadColor.ANSI_RED, bufferLock);
-
-        MyConsumer consumer1 = new MyConsumer(buffer, ThreadColor.ANSI_PURPLE, bufferLock);
-        MyConsumer consumer2 = new MyConsumer(buffer, ThreadColor.ANSI_GREEN, bufferLock);
+        MyConsumer consumer1 = new MyConsumer(buffer, ThreadColor.ANSI_PURPLE);
+        MyConsumer consumer2 = new MyConsumer(buffer, ThreadColor.ANSI_GREEN);
 
         executorService.execute(producer);
         executorService.execute(consumer1);
         executorService.execute(consumer2);
-    }
 
+        Future<String> future = executorService.submit(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                System.out.println(ThreadColor.ANSI_RESET+"Printing from the callable class");
+                return "This is a callable class result";
+            }
+        });
+
+        try {
+            System.out.println(future.get());
+        }catch (ExecutionException executionException){
+            System.out.println("Execution exception inside the future class");
+        }catch (InterruptedException e ){
+            System.out.println("Interrupted Exception inside the thread class.");
+        }
+
+        executorService.shutdown();
+    }
 }
