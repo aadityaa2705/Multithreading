@@ -2,8 +2,11 @@ package multithreading.starvation;
 
 import multithreading.threadcolor.ThreadColor;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public class ThreadStarvation {
-    private static Object lock = new Object();
+    //setting it to true enables first come, first served
+    private static final ReentrantLock reentrantLock = new ReentrantLock(true);
 
     public static void main(String[] args) {
         Thread t1 = new Thread(new Worker(ThreadColor.ANSI_RED),"Priority 10");
@@ -29,7 +32,7 @@ public class ThreadStarvation {
 
     //inner class
     private static class Worker implements Runnable{
-        private String threadColor;
+        private final String threadColor;
         private int runCount = 1;
 
         public Worker(String threadColor) {
@@ -39,8 +42,11 @@ public class ThreadStarvation {
         @Override
         public void run() {
             for (int i = 1; i <=100 ; i++) {
-                synchronized (lock){
+                reentrantLock.lock();
+                try {
                     System.out.format(threadColor+"%s: runCount = %d\n",Thread.currentThread().getName(),runCount++);
+                }finally {
+                    reentrantLock.unlock();
                 }
             }
         }
